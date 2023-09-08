@@ -1,43 +1,41 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { SeacrhbarContainer, SearchForm } from './Searchbar.styled';
 import { IconSearch } from './IconSearch';
 
-export class Searchbar extends Component {
-  state = { searchRequest: '' };
+export function Searchbar({ onSearchRequestSubmit }) {
+  const [query, setQuery] = useState('');
 
-  onChange = e => {
-    this.setState({ searchRequest: e.currentTarget.value });
+  const onChange = e => {
+    setQuery(e.currentTarget.value);
   };
 
-  onSubmit = e => {
+  const onSubmit = e => {
     e.preventDefault();
-    if (!this.state.searchRequest.trim()) {
+    if (!query.trim()) {
       return;
     }
-    this.props.onSearchRequestSubmit(this.state.searchRequest.trim());
-    this.setState({ searchRequest: '' });
+    onSearchRequestSubmit(query.trim());
+    setQuery('');
   };
 
-  render() {
-    return (
-      <header>
-        <SeacrhbarContainer>
-          <SearchForm onSubmit={this.onSubmit}>
-            <button type="submit">
-              <IconSearch />
-            </button>
+  return (
+    <header>
+      <SeacrhbarContainer>
+        <SearchForm onSubmit={onSubmit}>
+          <button type="submit">
+            <IconSearch />
+          </button>
 
-            <input
-              onChange={this.onChange}
-              type="text"
-              autoComplete="off"
-              value={this.state.searchRequest}
-              autoFocus
-              placeholder="Search images and photos"
-            />
-          </SearchForm>
-        </SeacrhbarContainer>
-      </header>
-    );
-  }
+          <input
+            onChange={onChange}
+            type="text"
+            autoComplete="off"
+            value={query}
+            autoFocus
+            placeholder="Search images and photos"
+          />
+        </SearchForm>
+      </SeacrhbarContainer>
+    </header>
+  );
 }

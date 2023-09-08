@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export function getHits(q, page) {
-  const hits = axios.get('https://pixabay.com/api/?per_page=12', {
+export async function getHits(q, page) {
+  const hits = await axios.get('https://pixabay.com/api/?per_page=12', {
     params: {
       q: q,
       page: page,

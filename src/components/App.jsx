@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { GlobalStyle } from './GlobalStyle';
 import { ImageGallery } from './ImageGallery/ImageGallery';
@@ -7,87 +7,77 @@ import { LoadButton } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { ImageModal } from './Modal/Modal';
 
-export class App extends Component {
-  state = {
-    searchRequest: '',
-    pictures: [],
-    page: 1,
-    loadMore: false,
-    loader: false,
-    showModal: false,
-    largeImageURL: '',
-    tags: '',
-  };
+export function App() {
+  const [searchRequest, setSearchRequest] = useState('');
+  const [pictures, setPictures] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loadMore, setLoadMore] = useState(false);
+  const [loader, setLoader] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState('');
+  const [tags, setTags] = useState('');
 
-  onSearchRequestSubmit = request => {
-    this.setState({
-      searchRequest: request,
-      pictures: [],
-      page: 1,
-      loadMore: false,
-      loader: false,
-      largeImageURL: '',
-    });
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.searchRequest !== this.state.searchRequest ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ loader: true });
-      getHits(this.state.searchRequest, this.state.page)
-        .then(response => {
-          return this.setState(prevState => ({
-            pictures: [...prevState.pictures, ...response.data.hits],
-            loadMore: this.state.page < Math.ceil(response.data.totalHits / 12),
-          }));
-        })
-        .catch(error => console.log(error.message))
-        .finally(() => this.setState({ loader: false }));
+  const onSearchRequestSubmit = request => {
+    setSearchRequest(request);
+    if (request === searchRequest) {
+      return;
     }
-  }
-
-  onLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-      loadMore: false,
-    }));
+    setPictures([]);
+    setPage(1);
+    setLoadMore(false);
+    setLoader(false);
+    setLargeImageURL('');
   };
 
-  onShowModal = (largeImageURL, tags) => {
-    this.setState({
-      showModal: true,
-      largeImageURL,
-      tags,
-    });
+  useEffect(() => {
+    if (!searchRequest) {
+      return;
+    }
+    setLoader(true);
+    getHits(searchRequest, page)
+      .then(response => {
+        return (
+          setPictures(prev => [...prev, ...response.data.hits]),
+          setLoadMore(page < Math.ceil(response.data.totalHits / 12))
+        );
+      })
+      .catch(error => console.log(error.message))
+      .finally(() => {
+        setLoader(false);
+      });
+  }, [page, searchRequest]);
+
+  const onLoadMore = () => {
+    setPage(prev => prev + 1);
+    setLoadMore(false);
   };
 
-  onCloseModal = () => {
-    this.setState({ showModal: false });
+  const onShowModal = (largeImageURL, tags) => {
+    setShowModal(true);
+    setLargeImageURL(largeImageURL);
+    setTags(tags);
   };
 
-  render() {
-    return (
-      <div>
-        <GlobalStyle />
-        <Searchbar onSearchRequestSubmit={this.onSearchRequestSubmit} />
-        {this.state.pictures.length > 0 && (
-          <ImageGallery
-            pictures={this.state.pictures}
-            onShowModal={this.onShowModal}
-          />
-        )}
-        {this.state.loadMore && <LoadButton onLoadMore={this.onLoadMore} />}
-        {this.state.loader && <Loader />}
+  const onCloseModal = () => {
+    setShowModal(false);
+  };
 
-        <ImageModal
-          largeImageURL={this.state.largeImageURL}
-          tags={this.state.tags}
-          showModal={this.state.showModal}
-          onCloseModal={this.onCloseModal}
-        />
-      </div>
-    );
-  }
+  return (
+    <div>
+      <GlobalStyle />
+      <Searchbar onSearchRequestSubmit={onSearchRequestSubmit} />
+      {pictures.length > 0 && (
+        <ImageGallery pictures={pictures} onShowModal={onShowModal} />
+      )}
+      {loadMore && <LoadButton onLoadMore={onLoadMore} />}
+      {loader && <Loader />}
+
+      <ImageModal
+        largeImageURL={largeImageURL}
+        tags={tags}
+        showModal={showModal}
+        onCloseModal={onCloseModal}
+      />
+    </div>
+  );
 }
