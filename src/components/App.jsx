@@ -18,10 +18,10 @@ export function App() {
   const [tags, setTags] = useState('');
 
   const onSearchRequestSubmit = request => {
-    setSearchRequest(request);
     if (request === searchRequest) {
       return;
     }
+    setSearchRequest(request);
     setPictures([]);
     setPage(1);
     setLoadMore(false);
